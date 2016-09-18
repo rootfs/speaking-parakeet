@@ -105,6 +105,11 @@ void initR()
     R_Interactive = 0;
 }
 
+void deinitR()
+{
+    Rf_endEmbeddedR(0);
+}
+
 SEXP call_r_func(SEXP fun, SEXP rargs)
 {
 	int		i;

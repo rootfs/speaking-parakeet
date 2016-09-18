@@ -76,6 +76,15 @@ int strncmp_caseins(char *str1, char *str2, size_t num);
 int charinstr(char *str, char c, size_t num);
 
 void initR();
+void deinitR();
+SEXP call_r_func(SEXP fun, SEXP rargs);
+SEXP convert_args(UDF_ARGS *args, char *is_null);
+
+struct r_data {
+    SEXP fun;
+	SEXP rargs;
+	SEXP rvalue;
+};
 
 #define TRIM_BACKQUOTE(fnull) (fnull+(int)(fnull[0]=='`'))		// Skip starting backquote
 #define RETURN_ERR(msg) { strcpy(message, msg); return 1; }		// Set error message and return in %_init functions
