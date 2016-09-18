@@ -37,15 +37,50 @@ typedef long long longlong;
 #include <mysql.h>
 #include <ctype.h>
 
+
+#include "R.h"
+#include "Rversion.h"
+
+
+#if (R_VERSION >= 132096) /* R_VERSION >= 2.4.0 */
+#include "Rembedded.h"
+#endif
+#if !defined(WIN32) && !defined(WIN64)
+#include "Rinterface.h"
+#else
+extern int R_SignalHandlers;
+#endif
+#include "Rinternals.h"
+#include "Rdefines.h"
+#if (R_VERSION < 133120) /* R_VERSION < 2.8.0 */
+#include "Rdevices.h"
+#endif
+
+#ifdef ERROR
+#undef ERROR
+#endif
+
+#ifdef WARNING
+#undef WARNING
+#endif
+
+#define WARNING		1
+#define ERROR		2
+#define true        1
+#define false       0
+
 char *strncpy_alloc(const char *str, unsigned long length);
 void **ptr_calloc(size_t nelem, size_t elsize);
 void ptr_free(void **ptr);
 int strncmp_caseins(char *str1, char *str2, size_t num);
 int charinstr(char *str, char c, size_t num);
-char *copy_argname(char *att, unsigned long length);
+
+void initR();
 
 #define TRIM_BACKQUOTE(fnull) (fnull+(int)(fnull[0]=='`'))		// Skip starting backquote
 #define RETURN_ERR(msg) { strcpy(message, msg); return 1; }		// Set error message and return in %_init functions
 #define ATTRIBUTE_COMPARE(i, str, len) (args->attribute_lengths[i] == len && strncmp_caseins(args->attributes[i], str, len) == 0)
+
+#define LOG_ERR(s) fprintf(stderr, "\n%s", s);
 
 #endif /* R_H_ */

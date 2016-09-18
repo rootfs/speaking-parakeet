@@ -95,3 +95,62 @@ int charinstr(char *str, char c, size_t num)
 
 	return -1;
 }
+
+void initR()
+{
+    char *argv[] = {"REmbeddedUDF", "--gui=none", "--silent"};
+    int argc = sizeof(argv)/sizeof(argv[0]);
+    R_SignalHandlers = 0;
+    Rf_initEmbeddedR(argc, argv);
+    R_Interactive = 0;
+}
+
+SEXP call_r_func(SEXP fun, SEXP rargs)
+{
+	int		i;
+	int		errorOccurred;
+	SEXP	obj,
+			args,
+			call,
+			ans;
+	long	n = length(rargs);
+
+	if(n > 0)
+	{
+		PROTECT(obj = args = allocList(n));
+		for (i = 0; i < n; i++)
+		{
+			SETCAR(obj, VECTOR_ELT(rargs, i));
+			obj = CDR(obj);
+		}
+		UNPROTECT(1);
+        /*
+         * NB: the headers of both R and Postgres define a function
+         * called lcons, so use the full name to be precise about what
+         * function we're calling.
+         */
+		PROTECT(call = Rf_lcons(fun, args));
+	}
+	else
+	{
+		PROTECT(call = allocVector(LANGSXP,1));
+		SETCAR(call, fun);
+	}
+
+	ans = R_tryEval(call, R_GlobalEnv, &errorOccurred);
+	UNPROTECT(1);
+
+	if(errorOccurred)
+	{
+        LOG_ERR("failed to call r func");
+	}
+	return ans;
+}
+
+SEXP convert_args(UDF_ARGS *args, char *is_null)
+{
+    SEXP rargs;
+    PROTECT(rargs = allocVector(VECSXP, args->arg_count));
+    UNPROTECT(1);
+    return rargs;
+}

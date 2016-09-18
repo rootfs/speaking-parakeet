@@ -21,26 +21,56 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-	 my_bool r_info_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
-	 void r_info_deinit(UDF_INIT *initid);
-	 char *r_info(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *length, char *is_null, char *error);
+	 my_bool r_ext_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
+	 void r_ext_deinit(UDF_INIT *initid);
+	 char *r_ext(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *length, char *is_null, char *error);
 #ifdef	__cplusplus
 }
 #endif
 
-
-my_bool r_info_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
+my_bool r_ext_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
 {
+    if (args->arg_count < 1) {
+        strcpy(message, "no script provided");
+        return 1;
+    }
+    if (args->arg_type[0] != STRING_RESULT) {
+        strcpy(message, "argument 0 must be result");
+        return 1;
+    }
+    initid->ptr = (char *)malloc(sizeof(SEXP));
+    if (initid->ptr == NULL) {
+        strcpy(message, "failed to allocate ptr");
+        return 1;
+    }
+    initR();
 	return 0;
 }
 
-void r_info_deinit(UDF_INIT *initid)
+void r_ext_deinit(UDF_INIT *initid)
 {
+     if (initid->ptr == NULL)
+         return;
+     free(initid->ptr);
+     initid->ptr = NULL;
 }
 
-char* r_info(UDF_INIT *initid, UDF_ARGS *args, char* result, unsigned long* length,	char *is_null, char *error)
+char* r_ext(UDF_INIT *initid, UDF_ARGS *args, char* result, unsigned long* length,	char *is_null, char *error)
 {
+#if 0    
+    SEXP			fun;
+	SEXP			rargs;
+	SEXP			rvalue;
+
+    PROTECT(fun = initid->ptr);
+	/* Convert all call arguments */
+    PROTECT(rargs = convert_args(args, is_null));
+	/* Call the R function */
+	PROTECT(rvalue = call_r_func(fun, rargs));
+	UNPROTECT(3);
+#endif
 	strcpy(result, PACKAGE_STRING);
 	*length = strlen(PACKAGE_STRING);
 	return result;
 }
+
