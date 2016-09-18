@@ -159,3 +159,29 @@ SEXP convert_args(UDF_ARGS *args, char *is_null)
     UNPROTECT(1);
     return rargs;
 }
+
+SEXP parse_func_body(const char *body)
+{
+	SEXP	rbody;
+	SEXP	fun;
+    SEXP	tmp;
+	int		status;
+
+	PROTECT(rbody = mkString(body));
+	PROTECT(tmp = R_PARSEVECTOR(rbody, -1, &status));
+
+	if (tmp != R_NilValue)
+		PROTECT(fun = VECTOR_ELT(tmp, 0));
+	else
+		PROTECT(fun = R_NilValue);
+
+	if (status != PARSE_OK)
+	{
+		UNPROTECT(3);
+        LOG_ERR(body);
+        return NULL;
+	}
+
+	UNPROTECT(3);
+	return(fun);
+}

@@ -55,6 +55,7 @@ extern int R_SignalHandlers;
 #if (R_VERSION < 133120) /* R_VERSION < 2.8.0 */
 #include "Rdevices.h"
 #endif
+#include "R_ext/Parse.h"
 
 #ifdef ERROR
 #undef ERROR
@@ -79,12 +80,16 @@ void initR();
 void deinitR();
 SEXP call_r_func(SEXP fun, SEXP rargs);
 SEXP convert_args(UDF_ARGS *args, char *is_null);
+SEXP parse_func_body(const char *body);
 
 struct r_data {
     SEXP fun;
 	SEXP rargs;
 	SEXP rvalue;
 };
+
+#define R_PARSEVECTOR(a_, b_, c_)		R_ParseVector(a_, b_, (ParseStatus *) c_, R_NilValue)
+
 
 #define TRIM_BACKQUOTE(fnull) (fnull+(int)(fnull[0]=='`'))		// Skip starting backquote
 #define RETURN_ERR(msg) { strcpy(message, msg); return 1; }		// Set error message and return in %_init functions
