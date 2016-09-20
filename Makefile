@@ -12,7 +12,7 @@ r_includespec := $(shell pkg-config --cflags-only-I libR)
 rhomedef := $(shell pkg-config --variable=rhome libR)
 endif
 
-CFLAGS := $(r_includespec) -DR_HOME_DEFAULT=$(rhomedef) $(CFLAGS)
+CFLAGS := $(r_includespec) -DR_HOME_DEFAULT=\"$(rhomedef)\" -DR_HOME="$(R_HOME)" $(CFLAGS)
 
 all: r.c helper.c r.h
 	gcc -Wall $(CFLAGS) -I/usr/include/mysql -shared -fPIC -DMYSQL_DYNAMIC_PLUGIN -o mysqlr.so r.c helper.c -L/usr/lib64/mysql -lmysqlclient -L/usr/lib64/R/lib -lR

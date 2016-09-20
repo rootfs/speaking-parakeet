@@ -1,6 +1,8 @@
-/**
+/*
+ * Copyright (C) 2016, Huamin Chen
+ *
  * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published by
+ * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
  * your option) any later version.
  *
@@ -16,6 +18,13 @@
 
 #include "r.h"
 
+#ifndef R_HOME
+#define R_HOME ""
+#endif
+
+#ifndef R_HOME_DEFAULT
+#define R_HOME_DEFAULT ""
+#endif
 /**
  * Allocate unused space for a string with a specific size and null terminate it.
  * The string does not need to be null terminated.
@@ -98,11 +107,31 @@ int charinstr(char *str, char c, size_t num)
 
 void initR()
 {
-    char *argv[] = {"REmbeddedUDF", "--gui=none", "--silent"};
+    char *argv[] = {"REmbeddedUDF", "--gui=none","--no-save", "--silent"};
     int argc = sizeof(argv)/sizeof(argv[0]);
+	/* refuse to start if R_HOME is not defined */
+	char *r_home = getenv("R_HOME");
+    char *rhenv = NULL;
+
+	if (r_home == NULL)
+	{
+		size_t	rh_len = strlen(R_HOME_DEFAULT);
+
+		/* see if there is a compiled in default R_HOME */
+		if (rh_len)
+		{
+			rhenv = malloc(8 + rh_len);
+
+			sprintf(rhenv, "R_HOME=%s", R_HOME_DEFAULT);
+			putenv(rhenv);
+		}
+    }    
     R_SignalHandlers = 0;
     Rf_initEmbeddedR(argc, argv);
     R_Interactive = 0;
+    if (rhenv) {
+        free(rhenv);
+    }
 }
 
 void deinitR()

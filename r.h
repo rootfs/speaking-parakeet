@@ -1,6 +1,8 @@
 /*
+ * Copyright (c) 2016, Huamin Chen
+ * Inspired by PL/R
  * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published by
+ * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
  * your option) any later version.
  *
@@ -95,6 +97,6 @@ struct r_data {
 #define RETURN_ERR(msg) { strcpy(message, msg); return 1; }		// Set error message and return in %_init functions
 #define ATTRIBUTE_COMPARE(i, str, len) (args->attribute_lengths[i] == len && strncmp_caseins(args->attributes[i], str, len) == 0)
 
-#define LOG_ERR(s) fprintf(stderr, "\n%s", s);
+#define LOG_ERR(s) fprintf(stderr, "%s\n", s);
 
 #endif /* R_H_ */
