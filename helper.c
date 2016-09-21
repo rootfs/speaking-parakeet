@@ -142,6 +142,7 @@ void initR()
 #if (R_VERSION > R_Version(2, 2, 9))
    Rf_initialize_R(argc, argv);
    R_CStackLimit = -1;
+   setup_Rmainloop ();
 #else
    Rf_initEmbeddedR(argc, argv);
 #endif
