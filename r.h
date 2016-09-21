@@ -55,14 +55,6 @@ typedef long long longlong;
 #include <R_ext/Rdynload.h>
 #include <R_ext/Memory.h>
 
-extern int inited;
-
-char *strncpy_alloc(const char *str, unsigned long length);
-void **ptr_calloc(size_t nelem, size_t elsize);
-void ptr_free(void **ptr);
-int strncmp_caseins(char *str1, char *str2, size_t num);
-int charinstr(char *str, char c, size_t num);
-
 void initR();
 void deinitR();
 SEXP call_r_func(SEXP fun, SEXP rargs);
@@ -76,12 +68,6 @@ struct r_data {
 };
 
 #define R_PARSEVECTOR(a_, b_, c_)		R_ParseVector(a_, b_, (ParseStatus *) c_, R_NilValue)
-
-
-#define TRIM_BACKQUOTE(fnull) (fnull+(int)(fnull[0]=='`'))		// Skip starting backquote
-#define RETURN_ERR(msg) { strcpy(message, msg); return 1; }		// Set error message and return in %_init functions
-#define ATTRIBUTE_COMPARE(i, str, len) (args->attribute_lengths[i] == len && strncmp_caseins(args->attributes[i], str, len) == 0)
-
 #define LOG_ERR(s) fprintf(stderr, "%s\n", s);
 
 #endif /* R_H_ */

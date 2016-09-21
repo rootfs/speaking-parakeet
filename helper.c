@@ -25,89 +25,6 @@
 #ifndef R_HOME_DEFAULT
 #define R_HOME_DEFAULT ""
 #endif
-/**
- * Allocate unused space for a string with a specific size and null terminate it.
- * The string does not need to be null terminated.
- */
-char *strncpy_alloc(const char *str, unsigned long length)
-{
-	if (str == NULL) return NULL;
-
-	char *newstr = (char *)malloc((length+1) * sizeof(char));
-	if (newstr == NULL) return NULL;
-
-	strncpy(newstr, str, length);
-	newstr[length] = '\0';
-
-	return newstr;
-}
-
-/**
- * Allocate unused space for an array of nelem elements each of whose size in bytes is elsize.
- * The space shall be initialized to all bits 0.
- */
-void **ptr_calloc(size_t nelem, size_t elsize)
-{
-	void **ptr = (void **)malloc(nelem * elsize + sizeof(int));
-	if (ptr == NULL) return NULL;
-
-	*(int *)ptr = nelem;
-
-	ptr = (void **)((int*)ptr + 1);
-	memset(ptr, 0, nelem * elsize);
-
-	return ptr;
-}
-
-/**
- * Free allocated space of ptr and the space of all items from ptr.
- * Only use with mem allocated with ptr_calloc.
- */
-void ptr_free(void **ptr)
-{
-    int i;
-	for (i=0; i < *((int *)ptr - 1); i++) {
-		if (ptr[i]) free(ptr[i]);
-	}
-
-	free((int*)ptr-1);
-}
-
-/**
- * Compare 2 (not \0 term) strings case insensative, specifying the length
- */
-int strncmp_caseins(char *str1, char *str2, size_t num)
-{
-	char c1, c2;
-    int i;
-
-	for (i=0; i<num; i++) {
-		c1 = (str1[i] >= 65 && str1[i] <= 90) ? str1[i] + 32 : str1[i]; /* Change to lower case */
-		c2 = (str2[i] >= 65 && str2[i] <= 90) ? str2[i] + 32 : str2[i]; /* Change to lower case */
-
-		if (c1 != c2) return (c1 < c2) * -2 + 1;   /* Could have used q?a:b, but... nerd power */
-	}
-
-	return 0;
-}
-
-/**
- * Check if a char appears in a string, specifying the length
- */
-int charinstr(char *str, char c, size_t num)
-{
-    int i;
-
-	for (i=0; i<num && str[i]; i++) {
-		if (str[i] == c) return i;
-	}
-
-	return -1;
-}
-
-static void Suicide(const char *s){ };
-int inited = 0;
-
 void initR()
 {
     char *argv[] = {"REmbeddedUDF", "--slave",  "--silent", "--vanilla", "--no-readline"};
@@ -115,10 +32,7 @@ void initR()
 	/* refuse to start if R_HOME is not defined */
 	char *r_home = getenv("R_HOME");
     char *rhenv = NULL;
-    if (inited) {
-        return;
-    }
-    LOG_ERR(__FUNCTION__);
+
 	if (r_home == NULL)
 	{
 		size_t	rh_len = strlen(R_HOME_DEFAULT);
@@ -132,25 +46,19 @@ void initR()
 			putenv(rhenv);
 		}
     }
-   R_SignalHandlers = 0;
-   /* redirect R's inputs and outputs. Print to stderr during startup.  */
-   R_Consolefile = NULL;
-   R_Outputfile = NULL;
-   ptr_R_Suicide = Suicide;
-
-   /* Don't do any stack checking */
+    R_SignalHandlers = 0;
+    /* Don't do any stack checking */
 #if (R_VERSION > R_Version(2, 2, 9))
-   Rf_initialize_R(argc, argv);
-   R_CStackLimit = -1;
-   setup_Rmainloop ();
+    Rf_initialize_R(argc, argv);
+    R_CStackLimit = -1;
+    setup_Rmainloop ();
 #else
-   Rf_initEmbeddedR(argc, argv);
+    Rf_initEmbeddedR(argc, argv);
 #endif
  
     if (rhenv) {
         free(rhenv);
     }
-    inited = 1;
 }
 
 void deinitR()
@@ -163,9 +71,9 @@ SEXP call_r_func(SEXP fun, SEXP rargs)
 	int		i;
 	int		errorOccurred;
 	SEXP	obj,
-			args,
-			call,
-			ans;
+        args,
+        call,
+        ans;
 	long	n = length(rargs);
 
 	if(n > 0)
@@ -203,7 +111,20 @@ SEXP call_r_func(SEXP fun, SEXP rargs)
 SEXP convert_args(UDF_ARGS *args, char *is_null)
 {
     SEXP rargs;
-    PROTECT(rargs = allocVector(VECSXP, args->arg_count));
+    int i;
+    PROTECT(rargs = allocVector(VECSXP, args->arg_count - 1));
+    for (i = 1; i < args->arg_count; i ++)
+    {
+        switch (args->arg_type[i]){
+        case INT_RESULT:
+            if (i == 1) {
+                SETCAR(rargs, ScalarInteger((int)*args->args[i]));
+            } else {
+                SETCADR(rargs, ScalarInteger((int)*args->args[i]));
+            }
+            break;
+        }
+    }
     UNPROTECT(1);
     return rargs;
 }

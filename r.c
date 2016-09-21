@@ -60,17 +60,21 @@ char* r_ext(UDF_INIT *initid, UDF_ARGS *args, char* result, unsigned long* lengt
 {
     struct r_data *data = NULL;
     char *body = (char *)args->args[0];
-
+    LOG_ERR(body);
+    
     data = (struct r_data *)initid->ptr;
     PROTECT(data->fun = parse_func_body(body));
+    if (data->fun == NULL) {
+        LOG_ERR("failed to parse function");
+        UNPROTECT(1);
+        return NULL;
+    }
 	/* Convert all call arguments */
     PROTECT(data->rargs = convert_args(args, is_null));
 	/* Call the R function */
 	PROTECT(data->rvalue = call_r_func(data->fun, data->rargs));
 	UNPROTECT(3);
-
-	strcpy(result, PACKAGE_STRING);
-	*length = strlen(PACKAGE_STRING);
+    
 	return result;
 }
 
