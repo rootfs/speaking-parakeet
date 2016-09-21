@@ -15,4 +15,4 @@ endif
 CFLAGS := $(r_includespec) -DR_HOME_DEFAULT=\"$(rhomedef)\" -DR_HOME="$(R_HOME)" $(CFLAGS)
 
 all: r.c helper.c r.h
-	gcc -Wall $(CFLAGS) -I/usr/include/mysql -shared -fPIC -DMYSQL_DYNAMIC_PLUGIN -o mysqlr.so r.c helper.c -L/usr/lib64/mysql -lmysqlclient -L/usr/lib64/R/lib -lR
+	gcc $(CFLAGS) -I/usr/include/mysql -Wall -Wpointer-arith  -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -g -pipe -Werror=format-security -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic -fpic -shared -Wl,-z,relro   -Wl,--as-needed    -DMYSQL_DYNAMIC_PLUGIN -Wl,-z,relro   -Wl,--as-needed  -o mysqlr.so r.c helper.c -L/usr/lib64/mysql -lmysqlclient -L/usr/lib64/R/lib -lR

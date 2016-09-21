@@ -39,38 +39,23 @@ typedef long long longlong;
 #include <mysql.h>
 #include <ctype.h>
 
+#define R_INTERFACE_PTRS
+#define CSTACK_DEFNS
+#include <R.h>
+#include <Rversion.h>
+#include <Rinternals.h>
+#include <Rdefines.h>
 
-#include "R.h"
-#include "Rversion.h"
+#define HAVE_UINTPTR_T
+#include <stdint.h>
+#include <Rinterface.h>
+#include <Rembedded.h>
+#include <R_ext/Parse.h>
+#include <R_ext/Callbacks.h>
+#include <R_ext/Rdynload.h>
+#include <R_ext/Memory.h>
 
-
-#if (R_VERSION >= 132096) /* R_VERSION >= 2.4.0 */
-#include "Rembedded.h"
-#endif
-#if !defined(WIN32) && !defined(WIN64)
-#include "Rinterface.h"
-#else
-extern int R_SignalHandlers;
-#endif
-#include "Rinternals.h"
-#include "Rdefines.h"
-#if (R_VERSION < 133120) /* R_VERSION < 2.8.0 */
-#include "Rdevices.h"
-#endif
-#include "R_ext/Parse.h"
-
-#ifdef ERROR
-#undef ERROR
-#endif
-
-#ifdef WARNING
-#undef WARNING
-#endif
-
-#define WARNING		1
-#define ERROR		2
-#define true        1
-#define false       0
+extern int inited;
 
 char *strncpy_alloc(const char *str, unsigned long length);
 void **ptr_calloc(size_t nelem, size_t elsize);

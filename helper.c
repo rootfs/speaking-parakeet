@@ -105,14 +105,20 @@ int charinstr(char *str, char c, size_t num)
 	return -1;
 }
 
+static void Suicide(const char *s){ };
+int inited = 0;
+
 void initR()
 {
-    char *argv[] = {"REmbeddedUDF", "--gui=none","--no-save", "--silent"};
+    char *argv[] = {"REmbeddedUDF", "--slave",  "--silent", "--vanilla", "--no-readline"};
     int argc = sizeof(argv)/sizeof(argv[0]);
 	/* refuse to start if R_HOME is not defined */
 	char *r_home = getenv("R_HOME");
     char *rhenv = NULL;
-
+    if (inited) {
+        return;
+    }
+    LOG_ERR(__FUNCTION__);
 	if (r_home == NULL)
 	{
 		size_t	rh_len = strlen(R_HOME_DEFAULT);
@@ -125,13 +131,25 @@ void initR()
 			sprintf(rhenv, "R_HOME=%s", R_HOME_DEFAULT);
 			putenv(rhenv);
 		}
-    }    
-    R_SignalHandlers = 0;
-    Rf_initEmbeddedR(argc, argv);
-    R_Interactive = 0;
+    }
+   R_SignalHandlers = 0;
+   /* redirect R's inputs and outputs. Print to stderr during startup.  */
+   R_Consolefile = NULL;
+   R_Outputfile = NULL;
+   ptr_R_Suicide = Suicide;
+
+   /* Don't do any stack checking */
+#if (R_VERSION > R_Version(2, 2, 9))
+   Rf_initialize_R(argc, argv);
+   R_CStackLimit = -1;
+#else
+   Rf_initEmbeddedR(argc, argv);
+#endif
+ 
     if (rhenv) {
         free(rhenv);
     }
+    inited = 1;
 }
 
 void deinitR()
